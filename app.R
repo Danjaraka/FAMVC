@@ -7,9 +7,10 @@
 library(shiny)
 library(shinydashboard)
 library(dplyr)
+library(rmarkdown)
 
 source('./ui.R')
 source('./server.R')
 
-
+#options(shiny.port = 8100)
 shinyApp(ui, server)
