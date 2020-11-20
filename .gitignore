@@ -31,3 +31,4 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+shiny-server-1.5.15.953-amd64.deb
