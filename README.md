@@ -1,4 +1,4 @@
-# Shiny server config
+# Shiny server config (everything is currently being logged)
 sudo nano /etc/shiny-server/shiny-server.conf
 # Restart app
 sudo /sbin/service shiny-server restart

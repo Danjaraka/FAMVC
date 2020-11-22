@@ -115,10 +115,11 @@ body <- dashboardBody(
     # Main panel for displaying outputs ----
     mainPanel(
       actionButton("make", "Make Graph"),
-      h2("Widgets tab content")
+      h2("Widgets tab content"),
       # Output: Data file ----
-      #tableOutput("contents"),
-      #tableOutput("user_csv")
+      tableOutput("contents"),
+      #tableOutput("favmc")
+      box( plotOutput("customPlot") )
     )
 
   )

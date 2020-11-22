@@ -8,6 +8,7 @@ library(shiny)
 library(dplyr)
 library(shinydashboard)
 library(rmarkdown)
+options(shiny.sanitize.errors = FALSE)
 
 source('./ui.R')
 source('./server.R')
