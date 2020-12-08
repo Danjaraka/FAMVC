@@ -3,5 +3,5 @@
 # 
 # Create the header for the ui.
 ###################
-header <- dashboardHeader(title = "FAVMC")
+header <- dashboardHeader(title = "FAMVC")
 
