@@ -7,46 +7,6 @@
 ###################
 body <- dashboardBody(
   tabItems(
-    
-    ########################
-    # First tab content
-    ########################
-    tabItem(
-      tabName = "dashboard",
-      fluidRow(
-        
-        # CONTROLS
-        box(
-          
-          title = "Controls",
-          
-          # Choose a column
-          selectInput(
-            "columnChoice",
-            "Choose a column:",
-            choices = colnames(df),
-            selected = "n"),
-          
-          sliderInput("slider", "Number of observations:", 1, 100, 50),
-          
-          # Create an eventReactive element
-          actionButton(
-            inputId = "submit",
-            label = "Submit column")
-          
-        ),
-        # PLOT THE THTINGS
-        box( plotOutput("histPlot") )
-      )
-    ),
-    
-    ########################
-    # Second tab content
-    ########################
-    tabItem(
-      tabName = "widgets",
-      h2("Widgets tab content")
-    ),
     tabItem(
       tabName = "favmc",
       h2("favmc"),
@@ -64,26 +24,14 @@ body <- dashboardBody(
 
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
-
     # Sidebar panel for inputs ----
     sidebarPanel(
-
       # Input: Select a file ----
       fileInput("file1", "Choose CSV File",
                 multiple = TRUE,
                 accept = c("text/csv",
                          "text/comma-separated-values,text/plain",
                          ".csv")),
-       # Input: Select a file ----
-      fileInput("file2", "Choose multianno TXT File",
-                multiple = TRUE,
-                accept = c("text/csv",
-                         "text/comma-separated-values,text/plain",
-                         ".csv")),
-
-      # Horizontal line ----
-      tags$hr(),
-
       # Input: Checkbox if file has header ----
       checkboxInput("header", "Header", TRUE),
 
@@ -103,19 +51,34 @@ body <- dashboardBody(
 
       # Horizontal line ----
       tags$hr(),
+      # Input: Select a file ----
+      fileInput("file2", "Choose multianno TXT File",
+                multiple = TRUE,
+                accept = c("text/csv",
+                         "text/comma-separated-values,text/plain",
+                         ".csv")),
+      
+            # Input: Checkbox if file has header ----
+      checkboxInput("header2", "Header", TRUE),
 
+      # Input: Select separator ----
+      radioButtons("sep2", "Separator",
+                   choices = c(Comma = ",",
+                               Semicolon = ";",
+                               Tab = "\t"),
+                   selected = ","),
+
+      # Horizontal line ----
+      tags$hr(),
       # Input: Select number of rows to display ----
-      radioButtons("disp", "Display",
-                   choices = c(Head = "head",
-                               All = "all"),
-                   selected = "head")
+      #radioButtons("disp", "Display", choices = c(Head = "head", All = "all"),selected = "head"),
 
     ),
 
     # Main panel for displaying outputs ----
     mainPanel(
-      actionButton("make", "Make Graph"),
-      h2("Widgets tab content"),
+      #actionButton("make", "Make Graph"),
+      h2("Graph will be made on both file submission"),
       # Output: Data file ----
       tableOutput("contents"),
       #tableOutput("favmc")

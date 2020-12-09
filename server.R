@@ -20,6 +20,7 @@ server <- function(input, output, session) {
     hist(data)
   })
 
+  #Not being used rn
   output$contents <- renderTable({
 
     # input$file1 will be NULL initially. After the user selects
@@ -42,6 +43,7 @@ server <- function(input, output, session) {
 
   })
 
+  #TODO CHANGE VAR NAMES
   output$customPlot <- renderPlot({
     req(input$file1,input$file2)
 
@@ -52,7 +54,7 @@ server <- function(input, output, session) {
              header = input$header,
              sep = input$sep,
              quote = input$quote)
-    UBE3A_Fin <- read.delim (input$file2$datapath)
+    UBE3A_Fin <- read.delim (input$file2$datapath, header = input$header2, sep = input$sep2)
     UBE3A$SIFT_pred <- UBE3A_Fin$SIFT_pred
     UBE3A$Polyphen2_HDIV_pred <- UBE3A_Fin$Polyphen2_HDIV_pred
     UBE3A$CADD_phred <- UBE3A_Fin$CADD_phred
