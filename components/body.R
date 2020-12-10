@@ -48,7 +48,7 @@ body <- dashboardBody(
                                "Double Quote" = '"',
                                "Single Quote" = "'"),
                    selected = '"'),
-
+      radioButtons("disp", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
       # Horizontal line ----
       tags$hr(),
       # Input: Select a file ----
@@ -67,20 +67,20 @@ body <- dashboardBody(
                                Semicolon = ";",
                                Tab = "\t"),
                    selected = ","),
-
+      radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
       # Horizontal line ----
       tags$hr(),
       # Input: Select number of rows to display ----
-      #radioButtons("disp", "Display", choices = c(Head = "head", All = "all"),selected = "head"),
 
     ),
 
     # Main panel for displaying outputs ----
     mainPanel(
       #actionButton("make", "Make Graph"),
-      h2("Graph will be made on both file submission"),
+      h2("Graph will be made on both files submission"),
       # Output: Data file ----
       tableOutput("contents"),
+      tableOutput("contents2"),
       #tableOutput("favmc")
       box( plotOutput("customPlot") )
     )

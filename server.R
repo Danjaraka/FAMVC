@@ -20,15 +20,8 @@ server <- function(input, output, session) {
     hist(data)
   })
 
-  #Not being used rn
   output$contents <- renderTable({
-
-    # input$file1 will be NULL initially. After the user selects
-    # and uploads a file, head of that data file by default,
-    # or all rows if selected, will be shown.
-
     req(input$file1)
-
     df <- read.csv(input$file1$datapath,
              header = input$header,
              sep = input$sep,
@@ -36,11 +29,28 @@ server <- function(input, output, session) {
 
     if(input$disp == "head") {
       return(head(df))
-    }
-    else {
+    }else if(input$disp == "none"){
+      return()
+    }else if(input$disp == "all"){
       return(df)
     }
 
+  })
+
+  output$contents2 <- renderTable({
+    req(input$file2)
+    df <- read.csv(input$file2$datapath,
+             header = input$header2,
+             sep = input$sep2,
+             quote = input$quote2)
+
+    if(input$disp2 == "head") {
+      return(head(df))
+    }else if(input$disp2 == "none"){
+      return()
+    }else if(input$disp2 == "all"){
+      return(df)
+    }
   })
 
   #TODO CHANGE VAR NAMES
