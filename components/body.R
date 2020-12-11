@@ -14,13 +14,13 @@ body <- dashboardBody(
       box( plotOutput("favmc") )
     ),
     ########################
-    # Test FAVMC
+    # FAMVC CUSTOM FILES
     ########################
     tabItem(
       tabName = "favmc-csv",
       h2("favmc-csv"),
         # App title ----
-  titlePanel("Uploading Files"),
+  titlePanel("File upload and parameter customisation"),
 
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
@@ -81,7 +81,6 @@ body <- dashboardBody(
       # Output: Data file ----
       tableOutput("contents"),
       tableOutput("contents2"),
-      #tableOutput("favmc")
       box( plotOutput("customPlot") )
     )
 
