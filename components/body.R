@@ -78,8 +78,11 @@ body <- dashboardBody(
       radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "head"),
       # Horizontal line ----
       tags$hr(),
-      # Input: Select number of rows to display ----
 
+      actionButton("add_btn", "Add Domain"),
+      actionButton("rm_btn", "Remove Domain"),
+      textOutput("counter"),
+      uiOutput("domain_name")
     ),
 
     # Main panel for displaying outputs ----
@@ -90,7 +93,7 @@ body <- dashboardBody(
       tableOutput("contents"),
       tableOutput("contents2"),
       #box( plotOutput("customPlot") ),
-      box( plotOutput("customPlot2") )
+      box( width = 12, plotOutput("customPlot2" ) )
     )
 
   )
