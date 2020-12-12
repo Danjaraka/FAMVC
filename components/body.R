@@ -52,7 +52,7 @@ body <- dashboardBody(
       # Horizontal line ----
       tags$hr(),
       # Input: Select a file ----
-      fileInput("file2", "Choose multianno TXT File",
+      fileInput("file2", "Choose clinvar csv File",
                 multiple = TRUE,
                 accept = c("text/csv",
                          "text/comma-separated-values,text/plain",
@@ -66,8 +66,16 @@ body <- dashboardBody(
                    choices = c(Comma = ",",
                                Semicolon = ";",
                                Tab = "\t"),
-                   selected = ","),
-      radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+                   selected = "\t"),
+
+      # Input: Select quotes ----
+      radioButtons("quote2", "Quote",
+                   choices = c(None = "",
+                               "Double Quote" = '"',
+                               "Single Quote" = "'"),
+                   selected = ''),
+
+      radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "head"),
       # Horizontal line ----
       tags$hr(),
       # Input: Select number of rows to display ----
@@ -81,7 +89,8 @@ body <- dashboardBody(
       # Output: Data file ----
       tableOutput("contents"),
       tableOutput("contents2"),
-      box( plotOutput("customPlot") )
+      #box( plotOutput("customPlot") ),
+      box( plotOutput("customPlot2") )
     )
 
   )
