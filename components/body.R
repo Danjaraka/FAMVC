@@ -78,7 +78,7 @@ body <- dashboardBody(
       radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "head"),
       # Horizontal line ----
       tags$hr(),
-
+      numericInput("protein_size", "Protein Size: ",1000, min = 0),
       actionButton("add_btn", "Add Domain"),
       actionButton("rm_btn", "Remove Domain"),
       textOutput("counter"),

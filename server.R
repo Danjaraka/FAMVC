@@ -36,11 +36,13 @@ server <- function(input, output, session) {
                     label = paste0("Domain Name ", i), 
                     value = AllInputs()[[paste0("domain_name", i)]]),
             textInput(inputId = paste0("range_start", i),
-                    label = paste0("Range Start", i), 
+                    label = paste0("Range Start ", i), 
                     value = AllInputs()[[paste0("range_start", i)]]),
             textInput(inputId = paste0("range_end", i),
                     label = paste0("Range End ", i), 
-                    value = AllInputs()[[paste0("range_end", i)]])
+                    value = AllInputs()[[paste0("range_end", i)]]),
+            tags$label(paste0("Domain Colour ", i)),
+            colourInput(paste0("col", i), NULL, "green",returnName = TRUE, palette = "limited",closeOnClick = TRUE)
           )
         })
       })
@@ -105,8 +107,9 @@ server <- function(input, output, session) {
     # ENTRY OF PROTEIN DATA
 
     # ProteinSize is the total length of the protein 
-    ProteinSize <- 875
-
+    #ProteinSize <- 875
+    ProteinSize <- input$protein_size 
+    
     # DomCol is the colour of the domain
     DomCol1 <- "lightcoral"
     DomCol2 <- "orange1"
