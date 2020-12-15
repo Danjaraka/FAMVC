@@ -75,24 +75,19 @@ body <- dashboardBody(
                                "Single Quote" = "'"),
                    selected = ''),
 
-      radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "head"),
+      radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
       # Horizontal line ----
       tags$hr(),
       numericInput("protein_size", "Protein Size: ",1000, min = 0),
       actionButton("add_btn", "Add Domain"),
-      actionButton("rm_btn", "Remove Domain"),
-      textOutput("counter"),
-      uiOutput("domain_name")
+      actionButton("rm_btn", "Remove Domain")
     ),
 
     # Main panel for displaying outputs ----
     mainPanel(
-      #actionButton("make", "Make Graph"),
       h2("Graph will be made on both files submission"),
-      # Output: Data file ----
       tableOutput("contents"),
       tableOutput("contents2"),
-      #box( plotOutput("customPlot") ),
       box( width = 12, plotOutput("customPlot2" ) )
     )
 

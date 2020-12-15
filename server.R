@@ -12,6 +12,8 @@ server <- function(input, output, session) {
    # Track the number of input boxes to render
   counter <- reactiveValues(n = 0)
 
+  domain <- reactiveValues()
+
   # Track all user inputs
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
@@ -21,8 +23,6 @@ server <- function(input, output, session) {
   observeEvent(input$rm_btn, {
     if (counter$n > 0) counter$n <- counter$n - 1
   })
-
-  output$counter <- renderPrint(print(counter$n))
 
   textboxes <- reactive({
 
@@ -35,21 +35,21 @@ server <- function(input, output, session) {
             textInput(inputId = paste0("domain_name", i),
                     label = paste0("Domain Name ", i), 
                     value = AllInputs()[[paste0("domain_name", i)]]),
-            textInput(inputId = paste0("range_start", i),
+            numericInput(inputId = paste0("range_start", i),
                     label = paste0("Range Start ", i), 
-                    value = AllInputs()[[paste0("range_start", i)]]),
-            textInput(inputId = paste0("range_end", i),
+                    value = 0,
+                    min = 0),
+            numericInput(inputId = paste0("range_end", i),
                     label = paste0("Range End ", i), 
-                    value = AllInputs()[[paste0("range_end", i)]]),
+                    value = 0,
+                    min = 0),
             tags$label(paste0("Domain Colour ", i)),
-            colourInput(paste0("col", i), NULL, "green",returnName = TRUE, palette = "limited",closeOnClick = TRUE)
+            colourInput(paste0("colour", i), NULL, "green",returnName = TRUE, palette = "limited",closeOnClick = TRUE)
           )
         })
       })
     }
   })
-
-  output$domain_name <- renderUI({ textboxes() })
 
   output$contents <- renderTable({
     req(input$file1)
@@ -85,12 +85,10 @@ server <- function(input, output, session) {
   })
 
   output$customPlot2 <- renderPlot({
-
     library(dplyr)
     library(rmarkdown)
 
     req(input$file1,input$file2)
-
 
     # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
     protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
@@ -104,74 +102,31 @@ server <- function(input, output, session) {
     protein$Frequency[findInterval(protein$Frequency, c(0.00001, 0.0001)) == 1L] <- 2
     protein$Frequency[findInterval(protein$Frequency, c(0.0001, 1)) == 1L] <- 3
 
-    # ENTRY OF PROTEIN DATA
-
     # ProteinSize is the total length of the protein 
-    #ProteinSize <- 875
-    ProteinSize <- input$protein_size 
+    ProteinSize <- input$protein_size
     
-    # DomCol is the colour of the domain
-    DomCol1 <- "lightcoral"
-    DomCol2 <- "orange1"
-    DomCol3 <- "blue"
-
-    # DomName is the name of the domain 
-    DomName1 <- "AZUL"
-    DomName2 <- "HECT"
-    DomName3 <- "DAN"
-
-    # LengthX.1 is the starting position of the domain & LengthX.2 is the end position of the domain where X represents a domain
-    Length1.1 <- 30
-    Length1.2 <- 83
-    Length2.1 <- 523
-    Length2.2 <- 875
-
-    Length3.1 <- 200
-    Length3.2 <- 400
-
-    # Mean is the middle length between a domain start and end position. Used for domain labels  
-    Mean1 <- (Length1.1+Length1.2)/2 
-    Mean2 <- (Length2.1+Length2.2)/2
-    Mean3 <- (Length3.1+Length3.2)/2 
-
-    # Amount is the amount of amino acids that occupy a domain
-    #Amount1 <- (Length1.2 - Length1.1 + 1)
-    #Amount2 <- (Length2.2 - Length2.1 + 1)
-    #Amount3 <- (Length3.2 - Length3.1 + 1)
-    # EXPECTED VALUES OF ALL GNOMAD VARIANTS FOR EACH DOMAIN  
-    #ExpVal1 <- Amount1*nrow(protein)/ProteinSize
-    #ExpVal2 <- Amount2*nrow(protein)/ProteinSize
-    #ExpVal3 <- Amount3*nrow(protein)/ProteinSize
+    lapply(1:counter$n, function(i) {
+      #domain name
+      inputName <- paste("domain_name", i, sep = "")
+      domain[[paste0("name", i)]] <- input[[inputName]]
+      #domain colour
+      inputColour <- paste("colour", i, sep ="")
+      domain[[paste0("colour", i)]] <- input[[inputColour]]
+      #domain range start
+      inputStart <- paste("range_start", i, sep ="")
+      domain[[paste0("range_start", i)]] <- input[[inputStart]]
+      #domain range end
+      inputEnd <- paste("range_end", i, sep ="")
+      domain[[paste0("range_end", i)]] <- input[[inputEnd]]
+      #calculate range mean
+      domain[[paste0("mean", i)]] <- (input[[inputStart]] + input[[inputEnd]])/2
+    })
 
     # OBSERVED VALUES OF ALL GNOMAD VARIANTS FOR EACH DOMAIN 
     protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
     protein$NumericConsequence <- gsub("[.]", "", protein.1)
 
-    #ObsVal1 <- filter(protein, NumericConsequence  %in% Length1.1:Length1.2)
-    #ObsVal2 <- filter(protein, NumericConsequence  %in% Length2.1:Length2.2)
-    #ObsVal3 <- filter(protein, NumericConsequence  %in% Length3.1:Length3.2)
-    #nrow(ObsVal1)
-    #nrow(ObsVal2)
-    #nrow(ObsVal3)
-
-    # P-VALUE CALCULATION OF ALL GNOMAD VARIANTS FOR EACH DOMAIN
-    #PAll1 <- pchisq((nrow(ObsVal1)-ExpVal1)^2/(ExpVal1), df=1, lower.tail=FALSE)
-    #PAll2 <- pchisq((nrow(ObsVal2)-ExpVal2)^2/(ExpVal2), df=1, lower.tail=FALSE)
-
-    #PAll3 <- pchisq((nrow(ObsVal3)-ExpVal3)^2/(ExpVal3), df=1, lower.tail=FALSE)
-
-    # VARIANTS PER AMINO ACID OF ALL GNOMAD VARIANTS FOR EACH DOMAIN
-
-    #DomFreq1 <- nrow(ObsVal1)/Amount1
-    #DomFreq2 <- nrow(ObsVal2)/Amount2
-    #DomFreq3 <- nrow(ObsVal3)/Amount3
-
-    # P-VALUE ALL VARIANTS
-    #if(PAll1 < 0.001){print("Extremely Significant")} else if (PAll1 < 0.01) {print("Very Significant")} else if (PAll1 < 0.05) {print("Significant")} else {print("NS")}
-    #if(PAll2 < 0.001){print("Extremely Significant")} else if (PAll2 < 0.01) {print("Very Significant")} else if (PAll2 < 0.05) {print("Significant")} else {print("NS")}
-
-    ## ----fig.width=15, fig.height=4------------------------------------------------------------------------------------------------------------------------------------
-    # PLOTTING BOTH THE GNOMAD AND CLINVAR VARIANTS (rmarkdown)
+    # PLOTTING BOTH THE GNOMAD AND CLINVAR VARIANTS
     par(mar = c(8, 5, 3, 5))
     
     # Plotting gnomAD Variants 
@@ -184,13 +139,11 @@ server <- function(input, output, session) {
 
     # Box Dimensions 
     rect(1, -2, ProteinSize, 0, col="grey88", border="black")
-    rect(Length1.1, -2, Length1.2, 0, col=DomCol1)          
-    rect(Length2.1, -2, Length2.2, 0, col=DomCol2)
-    rect(Length3.1, -2, Length3.2, 0, col=DomCol3)
 
-    text(Mean1, -1, DomName1, cex = 1.3)
-    text(Mean2, -1, DomName2, cex = 1.3)
-    text(Mean3, -1, DomName3, cex = 1.3)
+    lapply(1:counter$n, function(i) {
+      rect(domain[[paste0("range_start", i)]], -2, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
+      text(domain[[paste0("mean", i)]], -1, domain[[paste0("name", i)]], cex = 1.3)
+    })
 
     # Legends
     par(xpd=TRUE)
