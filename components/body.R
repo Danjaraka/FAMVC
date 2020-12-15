@@ -80,7 +80,8 @@ body <- dashboardBody(
       tags$hr(),
       numericInput("protein_size", "Protein Size: ",1000, min = 0),
       actionButton("add_btn", "Add Domain"),
-      actionButton("rm_btn", "Remove Domain")
+      actionButton("rm_btn", "Remove Domain"),
+      uiOutput("domain_name")
     ),
 
     # Main panel for displaying outputs ----

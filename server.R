@@ -51,6 +51,8 @@ server <- function(input, output, session) {
     }
   })
 
+  output$domain_name <- renderUI({ textboxes() })
+
   output$contents <- renderTable({
     req(input$file1)
     df <- read.csv(input$file1$datapath,
