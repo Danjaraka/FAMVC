@@ -10,7 +10,7 @@ options(shiny.sanitize.errors = FALSE)
 server <- function(input, output, session) {
 
    # Track the number of input boxes to render
-  counter <- reactiveValues(n = 0)
+  counter <- reactiveValues(n = 0, n_key = 0)
 
   domain <- reactiveValues()
 
@@ -18,14 +18,18 @@ server <- function(input, output, session) {
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
   })
-
+  #add domain counter
   observeEvent(input$add_btn, {counter$n <- counter$n + 1})
   observeEvent(input$rm_btn, {
     if (counter$n > 0) counter$n <- counter$n - 1
   })
+  #add key counter
+  observeEvent(input$add_key_btn, {counter$n_key <- counter$n_key + 1})
+  observeEvent(input$rm_key_btn, {
+    if (counter$n_key > 0) counter$n_key <- counter$n_key - 1
+  })
 
   textboxes <- reactive({
-
     n <- counter$n
 
     if (n > 0) {
@@ -51,7 +55,27 @@ server <- function(input, output, session) {
     }
   })
 
+  key_textboxes <- reactive({
+    n_key <- counter$n_key
+
+    if (n_key > 0) {
+      isolate({
+        lapply(seq_len(n_key), function(i) {
+          list(
+            textInput(inputId = paste0("key_name", i),
+                    label = paste0("Key Name ", i), 
+                    value = AllInputs()[[paste0("key_name", i)]]),
+            tags$label(paste0("Key Colour ", i)),
+            colourInput(paste0("key_colour", i), NULL, "green",returnName = TRUE, palette = "limited",closeOnClick = TRUE)
+          )
+        })
+      })
+    }
+  })
+
   output$domain_name <- renderUI({ textboxes() })
+
+  output$key_name <- renderUI({ key_textboxes() })
 
   output$contents <- renderTable({
     req(input$file1)
@@ -141,15 +165,31 @@ server <- function(input, output, session) {
 
     # Box Dimensions 
     rect(1, -2, ProteinSize, 0, col="grey88", border="black")
-
-    lapply(1:counter$n, function(i) {
-      rect(domain[[paste0("range_start", i)]], -2, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
-      text(domain[[paste0("mean", i)]], -1, domain[[paste0("name", i)]], cex = 1.3)
-    })
+    if(counter$n > 0){
+      lapply(1:counter$n, function(i) {
+        rect(domain[[paste0("range_start", i)]], -2, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
+        text(domain[[paste0("mean", i)]], -1, domain[[paste0("name", i)]], cex = 1.3)
+      })
+    }
 
     # Legends
     par(xpd=TRUE)
-    legend(-20, -6, col = c("lightcoral", "orange1"), legend = c("ZN-binding domain", "HECT domain"), pch = 15, bty = "n", cex = 1.1)
+    if(counter$n_key > 0){
+      lapply(1:counter$n_key, function(i) {
+        x <- -20
+        y <- (-5 -i *.5)
+        #shift key right every 3 keys??
+
+        #Very bad code must be a better way to do this...
+        inputKeyColour <- paste("key_colour", i, sep ="")
+        domain[[paste0("key_colour", i)]] <- input[[inputKeyColour]]
+
+        inputKeyName <- paste("key_name", i, sep = "")
+        domain[[paste0("key_name", i)]] <- input[[inputKeyName]]
+
+        legend(x, y, col = domain[[paste0("key_colour", i)]], legend = domain[[paste0("key_name", i)]], pch = 15, bty = "n", cex = 1.1)
+      })
+    }
     text(ProteinSize+35, 1, "<1:100,000", cex = 0.85)
     text(ProteinSize+35, 3, ">1:10,000", cex = 0.85)
 
