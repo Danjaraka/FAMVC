@@ -176,10 +176,14 @@ server <- function(input, output, session) {
     par(xpd=TRUE)
     if(counter$n_key > 0){
       lapply(1:counter$n_key, function(i) {
-        x <- -20
-        y <- (-5 -i *.5)
-        #shift key right every 3 keys??
-
+        if(i < 4){
+          x <- -20
+          y <- (-5 -i *.5)
+        }else{
+          x <- 400
+          y <- (-3.5 -i *.5)
+        }
+        
         #Very bad code must be a better way to do this...
         inputKeyColour <- paste("key_colour", i, sep ="")
         domain[[paste0("key_colour", i)]] <- input[[inputKeyColour]]
