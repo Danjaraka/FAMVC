@@ -6,6 +6,6 @@
 sidebar <- dashboardSidebar(
   sidebarMenu(
     menuItem("FAVMC CSV", tabName = "favmc-csv", icon = icon("file-csv")),
-    menuItem("FAVMC Example", tabName = "favmc", icon = icon("star"))
+    menuItem("FAVMC Colour", tabName = "favmc-colour", icon = icon("star"))
   )
 )
