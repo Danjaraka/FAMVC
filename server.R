@@ -214,25 +214,48 @@ server <- function(input, output, session) {
 
     req(input$file1,input$file2)
 
+    #delete previous output in /temp
+    system("rm /home/dan/FAMVC/temp/*")
+
     # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
     protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
     # Plotting ClinVar Variants
     protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
 
-    # TODO fix protein height
-    protein$Height <- paste(protein$Allele.Frequency)
-    protein$Frequency <- as.numeric(as.character(protein$Height))
-    protein$Height[findInterval(protein$Height, c(0, 0.00001)) == 1L] <- 1
-    protein$Height[findInterval(protein$Height, c(0.00001, 0.0001)) == 1L] <- 2
-    protein$Height[findInterval(protein$Height, c(0.0001, 0.001)) == 1L] <- 3
-    protein$Height[findInterval(protein$Height, c(0.001, 0.01)) == 1L] <- 4
-    protein$Height[findInterval(protein$Height, c(0.01, 1)) == 1L] <- 5
+    #Code generate tsv for annovar, in future will be moved into functions.R
+    annovarInput <- protein
+    annovarInput$rsID <- annovarInput$Position
+    colnames(annovarInput)[which(names(annovarInput) == "rsID")] <- "Position"
+    write.table(annovarInput, file = file.path("/home/dan/FAMVC/temp", "file.txt"),row.names=FALSE,sep='\t',quote=FALSE)
+    #Run annovar with the generated file
+    system("../scripts/annovar/./multianno.sh", wait = TRUE)
+    annovar <- read.delim("/home/dan/FAMVC/temp/file.txt.hg19_multianno.txt")
+    #remove second row of headers that annovar adds
+    annovar <- annovar[-c(2), ]
+    
+    protein$Height <- paste(annovar$CADD_phred)
+    #protein$Height[findInterval(protein$Height, c(0, 5)) == 1L] <- 1
+    #protein$Height[findInterval(protein$Height, c(5, 10)) == 1L] <- 2
+    #protein$Height[findInterval(protein$Height, c(15, 20)) == 1L] <- 3
+    #protein$Height[findInterval(protein$Height, c(20, 25)) == 1L] <- 4
+    #protein$Height[findInterval(protein$Height, c(25, 50)) == 1L] <- 5
 
-    protein$temp <- 2
+    protein$Height[findInterval(protein$Height, c(0, 10)) == 1L] <- 1
+    protein$Height[findInterval(protein$Height, c(10, 20)) == 1L] <- 2
+    protein$Height[findInterval(protein$Height, c(20, 30)) == 1L] <- 3
+
+    #protein frequency is represented as colour
+    protein$Frequency <- paste(protein$Allele.Frequency)
+    protein$Frequency[findInterval(protein$Frequency, c(0, 0.00001)) == 1L] <- 1
+    protein$Frequency[findInterval(protein$Frequency, c(0.00001, 0.0001)) == 1L] <- 2
+    protein$Frequency[findInterval(protein$Frequency, c(0.0001, 0.001)) == 1L] <- 3
+    protein$Frequency[findInterval(protein$Frequency, c(0.001, 0.01)) == 1L] <- 4
+    protein$Frequency[findInterval(protein$Frequency, c(0.01, 1)) == 1L] <- 5
+
     #Create a function to generate a color palette
     cols <- brewer.pal(5, "Spectral")
     rbPal <- colorRampPalette(cols)
-    protein$Colour <- rbPal(5)[cut(as.numeric(protein$Height),breaks = 5)]
+    protein$Colour <- rbPal(5)[cut(as.numeric(protein$Frequency),breaks = 5)]
 
     # ProteinSize is the total length of the protein 
     ProteinSize <- input$protein_size
@@ -267,7 +290,7 @@ server <- function(input, output, session) {
     protein.2 <- gsub("[.]", "", protein.1)
     protein$Number1 <- -4
     plot(protein$Height~protein.2, ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = protein$Colour, bty="n")
-    legend("topright",title="Frequency",legend=c(0.00001,0.0001,0.001,0.01,0.1),col =rbPal(5),pch=20)
+    legend("topright",title="Frequency",legend=c("0.00001","0.0001","0.001","0.01","0.1"),col =rbPal(5),pch=20)
     axis(1, c(1,ProteinSize))
 
     # Box Dimensions 

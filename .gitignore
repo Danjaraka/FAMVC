@@ -32,3 +32,6 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 shiny-server-1.5.15.953-amd64.deb
+
+# Temporary files created by ANNOVAR
+temp/

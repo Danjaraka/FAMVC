@@ -96,7 +96,7 @@ body <- dashboardBody(
           tableOutput("contents"),
           tableOutput("contents2"),
           box( width = 12, plotOutput("customPlot2" ) ),
-          h2("Frequency as height/colour"),
+          h2("Frequency as colour, CADD Phred scores as height"),
           box( width = 12, plotOutput("colourPlot" ) )
         )
       )
