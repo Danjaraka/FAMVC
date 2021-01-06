@@ -390,13 +390,13 @@ server <- function(input, output, session) {
     #cols <- brewer.pal(5, "BuPu")
     #rbPal <- colorRampPalette(cols)
     #different colour pallete
-    #grey <- rgb(242, 224, 215, max = 255, alpha = 255, names = "grey50")
-    #blue <- rgb(51, 153, 255, max = 255, alpha = 255, names = "blue50")
-    #purple <- rgb(102, 0, 102, max = 255, alpha = 255, names = "purple50")
-    #colfunc <- colorRampPalette(c(grey,blue,purple))
+    grey <- rgb(192, 192, 192, max = 255, alpha = 255, names = "grey50")
+    blue <- rgb(51, 153, 255, max = 255, alpha = 255, names = "blue50")
+    purple <- rgb(102, 0, 102, max = 255, alpha = 255, names = "purple50")
+    rbPal <- colorRampPalette(c(grey,blue,purple))
 
     #protein$Colour <- rbPal(5)[cut(as.numeric(protein$Frequency),breaks = 5)]
-    protein$Colour <- colfunc(3)[cut(as.numeric(protein$Frequency),breaks = 3)]
+    #protein$Colour <- colfunc(3)[cut(as.numeric(protein$Frequency),breaks = 3)]
 
     # ProteinSize is the total length of the protein 
     ProteinSize <- input$protein_size
@@ -437,7 +437,7 @@ server <- function(input, output, session) {
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
     
     
-    legend("bottomright",title="Frequency",legend=c("0, 0.00001","0.00001, 0.0001","0.0001, 1"),col =rbPal(5),pch=20)
+    legend("bottomright",title="Frequency",legend=c("0, 0.00001","0.00001, 0.0001","0.0001, 1"),col =rbPal(3),pch=20)
     axis(1, c(1,ProteinSize))
 
     # Box Dimensions 
