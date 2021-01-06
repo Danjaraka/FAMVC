@@ -97,7 +97,11 @@ body <- dashboardBody(
           tableOutput("contents2"),
           box( width = 12, plotOutput("customPlot2" ) ),
           h2("Frequency as colour, CADD Phred scores as height"),
-          box( width = 12, plotOutput("colourPlot" ) )
+          box( width = 12, plotOutput("colourPlot" ) ),
+          h2("Download ANNOVAR output .txt"),
+          downloadButton("downloadData", "Download"),
+          h2("Download graph .png"),
+          downloadButton('downloadPlot', 'Download Plot')
         )
       )
     )
