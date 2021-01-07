@@ -6,6 +6,7 @@
 ###################
 library(shinydashboard)
 library(colourpicker)
+library(dashboardthemes)
 options(shiny.sanitize.errors = FALSE)
 source('./components/header.R')
 source('./components/sidebar.R')

@@ -6,13 +6,11 @@
 # components as well.
 ###################
 body <- dashboardBody(
+  ### changing theme
+  shinyDashboardThemes(
+      theme = "poor_mans_flatly"
+  ),
   tabItems(
-    tabItem(
-      tabName = "favmc",
-      h2("favmc"),
-      # PLOT THE THTINGS
-      box( plotOutput("favmc") )
-    ),
     ########################
     # FAMVC CUSTOM FILES
     ########################
@@ -32,6 +30,9 @@ body <- dashboardBody(
                     accept = c("text/csv",
                             "text/comma-separated-values,text/plain",
                             ".csv")),
+          actionButton("toggle", "Advanced Options"),
+          conditionalPanel(
+          condition = "input.toggle % 2 == 1",
           # Input: Checkbox if file has header ----
           checkboxInput("header", "Header", TRUE),
 
@@ -49,6 +50,8 @@ body <- dashboardBody(
                                   "Single Quote" = "'"),
                       selected = '"'),
           radioButtons("disp", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+          ),
+          
           # Horizontal line ----
           tags$hr(),
           # Input: Select a file ----
@@ -57,25 +60,28 @@ body <- dashboardBody(
                     accept = c("text/csv",
                             "text/comma-separated-values,text/plain",
                             ".csv")),
-          
-                # Input: Checkbox if file has header ----
-          checkboxInput("header2", "Header", TRUE),
+          actionButton("toggleClinVar", "Advanced Options"),
+          conditionalPanel(
+            condition = "input.toggleClinVar % 2 == 1",
+            # Input: Checkbox if file has header ----
+            checkboxInput("header2", "Header", TRUE),
 
-          # Input: Select separator ----
-          radioButtons("sep2", "Separator",
-                      choices = c(Comma = ",",
-                                  Semicolon = ";",
-                                  Tab = "\t"),
-                      selected = "\t"),
+            # Input: Select separator ----
+            radioButtons("sep2", "Separator",
+                        choices = c(Comma = ",",
+                                    Semicolon = ";",
+                                    Tab = "\t"),
+                        selected = "\t"),
 
-          # Input: Select quotes ----
-          radioButtons("quote2", "Quote",
-                      choices = c(None = "",
-                                  "Double Quote" = '"',
-                                  "Single Quote" = "'"),
-                      selected = ''),
+            # Input: Select quotes ----
+            radioButtons("quote2", "Quote",
+                        choices = c(None = "",
+                                    "Double Quote" = '"',
+                                    "Single Quote" = "'"),
+                        selected = ''),
 
-          radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+            radioButtons("disp2", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+          ),
           tags$hr(),
           numericInput("protein_size", "Protein Size: ",1000, min = 0),
           tags$hr(),
@@ -86,16 +92,17 @@ body <- dashboardBody(
           uiOutput("key_name"),
           actionButton("add_key_btn", "Add Key"),
           actionButton("rm_key_btn", "Remove Key"),
-          h3("(Graphs will be made on both files submission)"),
+          tags$hr(),
+          actionButton("makePlot", "Make Plot"),
           tags$hr(),
         ),
 
         # Main panel for displaying outputs ----
         mainPanel(
-          h2("Frequency as height"),
+          #h2("Frequency as height"),
           tableOutput("contents"),
           tableOutput("contents2"),
-          box( width = 12, plotOutput("customPlot2" ) ),
+          #box( width = 12, plotOutput("customPlot2" ) ),
           h2("Frequency as colour, CADD Phred scores as height"),
           box( width = 12, plotOutput("colourPlot" ) ),
           h2("Download ANNOVAR output .txt"),
