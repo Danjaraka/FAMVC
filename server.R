@@ -369,7 +369,7 @@ server <- function(input, output, session) {
     library(rmarkdown)
     library(RColorBrewer)
 
-    req(input$file1,input$file2)
+    req(input$file1)
       if (input$makePlot == 0)
         return()
     #delete previous output in /temp
@@ -378,8 +378,11 @@ server <- function(input, output, session) {
     isolate({
       # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
       protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
+
       # Plotting ClinVar Variants
-      protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
+      if(!is.null(input$file2)){
+        protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
+      }
 
       #Code generate tsv for annovar, in future will be moved into functions.R
       annovarInput <- protein
@@ -458,9 +461,9 @@ server <- function(input, output, session) {
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
     
     
-    legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
+    #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
     axis(side = 1, pos = -2.5, c(1,ProteinSize))
-    axis(side = 4,c(0,3))
+    #axis(side = 4,c(0,3))
     #axis(side = 4)
 
     # Box Dimensions 
@@ -497,13 +500,15 @@ server <- function(input, output, session) {
     #text(ProteinSize+15, 3, ">1:10,000", cex = 0.85)
 
     # Plotting ClinVar Variants
-    protein_ClinVar$Label <- protein_ClinVar$Change
-    protein_ClinVar.1 <- gsub("[a-zA-Z]", "", protein_ClinVar$Change)
-    protein_ClinVar.2 <- gsub("[.]", "", protein_ClinVar.1)
-    protein_ClinVar$Number <- -2
+    if(!is.null(input$file2)){
+      protein_ClinVar$Label <- protein_ClinVar$Change
+      protein_ClinVar.1 <- gsub("[a-zA-Z]", "", protein_ClinVar$Change)
+      protein_ClinVar.2 <- gsub("[.]", "", protein_ClinVar.1)
+      protein_ClinVar$Number <- -2
 
-    par(new=TRUE)
-    plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7.5, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
+      par(new=TRUE)
+      plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7.5, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
+    }
     })
   })
 
