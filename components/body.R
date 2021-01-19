@@ -16,9 +16,9 @@ body <- dashboardBody(
     ########################
     tabItem(
       tabName = "favmc-csv",
-      h2("favmc-csv"),
         # App title ----
-      titlePanel("File upload and parameter customisation"),
+      titlePanel("Functional Assessment of Missense Variant Clustering"),
+      tags$hr(),
 
       # Sidebar layout with input and output definitions ----
       sidebarLayout(
@@ -99,16 +99,17 @@ body <- dashboardBody(
 
         # Main panel for displaying outputs ----
         mainPanel(
-          #h2("Frequency as height"),
-          tableOutput("contents"),
-          tableOutput("contents2"),
-          #box( width = 12, plotOutput("customPlot2" ) ),
           h2("Frequency as colour, CADD Phred scores as height"),
           box( width = 12, plotOutput("colourPlot" ) ),
+          tableOutput("contents"),
+          tableOutput("contents2"),
           h2("Download ANNOVAR output .txt"),
           downloadButton("downloadData", "Download"),
           h2("Download graph .png"),
-          downloadButton('downloadPlot', 'Download Plot')
+          downloadButton('downloadPlot', 'Download Plot'),
+          # Add to your UI: 
+          actionButton("browser", "browser"),
+          tags$script("$('#browser').hide();")
         )
       )
     )

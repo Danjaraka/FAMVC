@@ -9,7 +9,7 @@ options(shiny.sanitize.errors = FALSE)
 
 server <- function(input, output, session) {
 
-   # Track the number of input boxes to render
+  # Track the number of input boxes to render
   counter <- reactiveValues(n = 0, n_key = 0)
 
   domain <- reactiveValues()
@@ -27,6 +27,10 @@ server <- function(input, output, session) {
   observeEvent(input$add_key_btn, {counter$n_key <- counter$n_key + 1})
   observeEvent(input$rm_key_btn, {
     if (counter$n_key > 0) counter$n_key <- counter$n_key - 1
+  })
+
+  observeEvent(input$browser,{
+    browser()
   })
 
   textboxes <- reactive({
@@ -368,6 +372,7 @@ server <- function(input, output, session) {
     library(dplyr)
     library(rmarkdown)
     library(RColorBrewer)
+    library(scales)
 
     req(input$file1)
       if (input$makePlot == 0)
@@ -397,8 +402,8 @@ server <- function(input, output, session) {
       annovar <<- annovar[-c(2), ]
       
       protein$Height <- paste(annovar$CADD_phred)
-      protein$Height <- as.numeric(protein$Height) / 13
-    
+      protein$Height <- as.numeric(protein$Height)
+      protein$Height <- rescale(protein$Height, to = c(1,3), from = c(0,40))
     #protein frequency is represented as colour
     protein$Frequency <- paste(protein$Allele.Frequency)
     protein$Frequency[findInterval(protein$Frequency, c(0, 0.00001)) == 1L] <- 1
@@ -459,11 +464,11 @@ server <- function(input, output, session) {
     plot(protein$Height[which(protein$Frequency == 1)]~protein$protein.2[which(protein$Frequency == 1)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = grey, bty="n")
     lines(protein$Height[which(protein$Frequency == 2)]~protein$protein.2[which(protein$Frequency == 2)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = blue, bty="n")
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
-    
+    #abline(h=1, col="blue")
     
     #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
-    axis(side = 1, pos = -2.5, c(1,ProteinSize))
-    #axis(side = 4,c(0,3))
+    axis(side = 1, pos = -2.7, c(1,ProteinSize))
+    axis(side = 4, at = c(1,3), labels = c("0","40"))
     #axis(side = 4)
 
     # Box Dimensions 
