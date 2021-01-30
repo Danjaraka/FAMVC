@@ -6,8 +6,10 @@
 ###################
 library(shiny)
 library(dplyr)
+library(plotly)
 library(shinydashboard)
 library(rmarkdown)
+library(ggplot2)
 options(shiny.sanitize.errors = FALSE)
 
 source('./ui.R')

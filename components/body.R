@@ -6,6 +6,10 @@
 # components as well.
 ###################
 body <- dashboardBody(
+  tags$head(
+    tags$style(HTML("
+    
+    "))),
   ### changing theme
   shinyDashboardThemes(
       theme = "poor_mans_flatly"
@@ -100,16 +104,17 @@ body <- dashboardBody(
         # Main panel for displaying outputs ----
         mainPanel(
           h2("Frequency as colour, CADD Phred scores as height"),
-          box( width = 12, plotOutput("colourPlot" ) ),
+          #box(width = 12, plotOutput("colourPlot",height="400px",width="1500px")),
+          box(width = 12, plotOutput("colourPlot") ),
+          #box(width = 12, imageOutput("myImage", height = "100%", width = "100%")),
           tableOutput("contents"),
           tableOutput("contents2"),
-          h2("Download ANNOVAR output .txt"),
+          h2("Download ANNOVAR output"),
           downloadButton("downloadData", "Download"),
-          h2("Download graph .png"),
-          downloadButton('downloadPlot', 'Download Plot'),
-          # Add to your UI: 
-          actionButton("browser", "browser"),
-          tags$script("$('#browser').hide();")
+          h2("Download High resolution plot"),
+          downloadButton('downloadPlot', 'Download High Quality Plot'),
+          downloadButton('downloadPDF', 'Download as a vector PDF')
+          #plotlyOutput("graph")
         )
       )
     )

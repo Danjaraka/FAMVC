@@ -11,9 +11,8 @@ server <- function(input, output, session) {
 
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 0, n_key = 0)
-
+  test <- reactiveValues()
   domain <- reactiveValues()
-
   # Track all user inputs
   AllInputs <- reactive({
     x <- reactiveValuesToList(input)
@@ -27,10 +26,6 @@ server <- function(input, output, session) {
   observeEvent(input$add_key_btn, {counter$n_key <- counter$n_key + 1})
   observeEvent(input$rm_key_btn, {
     if (counter$n_key > 0) counter$n_key <- counter$n_key - 1
-  })
-
-  observeEvent(input$browser,{
-    browser()
   })
 
   textboxes <- reactive({
@@ -128,9 +123,94 @@ server <- function(input, output, session) {
   output$downloadPlot <- downloadHandler(
     filename = function() { paste('graph', '.png', sep='') },
     content = function(file) {
-      png(file, width=1600, height=400)
+      png(file,width = 1875,type = "cairo-png")
       print(plotInput())
       dev.off()
+    }
+  )
+
+  #Download PDF
+  output$downloadPDF <- downloadHandler(
+    filename = function() { paste('graph', '.pdf', sep='') },
+    content = function(file) {
+      pdf(file, width=16, height=5)
+      print(plotInput())
+      dev.off()
+    }
+  )
+
+  output$graph <- renderPlotly({
+    req(input$file1)
+      if (input$makePlot == 0)
+        return()
+    isolate({
+      # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
+      protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
+
+      # Plotting ClinVar Variants
+      if(!is.null(input$file2)){
+        protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
+      }
+
+      #Code generate tsv for annovar, in future will be moved into functions.R
+      annovarInput <- protein
+      annovarInput$rsID <- annovarInput$Position
+      #rename column
+      colnames(annovarInput)[which(names(annovarInput) == "rsID")] <- "Position"
+      write.table(annovarInput, file = file.path("/home/dan/FAMVC/temp", "file.txt"),row.names=FALSE,sep='\t',quote=FALSE)
+      #Run annovar with the generated file
+      system("../scripts/annovar/./multianno.sh", wait = TRUE)
+      annovar <<- read.delim("/home/dan/FAMVC/temp/file.txt.hg19_multianno.txt")
+      #remove second row of headers that annovar adds
+      annovar <<- annovar[-c(2), ]
+      
+      protein$Height <- paste(annovar$CADD_phred)
+      protein$Height <- as.numeric(protein$Height)
+      #protein frequency is represented as colour
+      protein$Frequency <- paste(protein$Allele.Frequency)
+      protein$Frequency[findInterval(protein$Frequency, c(0, 0.00001)) == 1L] <- 1
+      protein$Frequency[findInterval(protein$Frequency, c(0.00001, 0.0001)) == 1L] <- 2
+      protein$Frequency[findInterval(protein$Frequency, c(0.0001, 1)) == 1L] <- 3
+    })
+    # Plotting gnomAD Variants 
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.2 <- gsub("[.]", "", protein.1)
+    #protein$protein.2 <- protein.2
+    #plot_ly(x = , y = protein$Height, type = 'scatter', mode = 'markers')
+    # Stick part of lollipop parameters
+    stick <- list(
+      type = 'line',
+      line = list(color = "grey"),
+      xref = 'x',
+      yref = "y",
+      width = 0.5
+    )
+    #TODO USE THIS ABOVE METHOD!!!
+    sticks <- list()
+    for(i in protein.2){
+      #print(protein$Height[i])
+      #print(protein.2[i])
+      stick[["x0"]] <- protein.2[i]
+      stick[["x1"]] <- protein.2[i]
+      stick[["y0"]] <- 0
+      stick[["y1"]] <- protein$Height[i]
+      sticks <- c(sticks, list(stick))
+    }
+
+    square <- list(type="line",x0=500,x1=500,y0=0,y1=30,xref = 'x',yref = "y"  )
+    
+    fig <- plot_ly(x = protein.2, y = protein$Height, color = ~protein$Frequency, type = 'scatter', mode = 'markers')
+    #custom range
+    fig <- layout(fig, xaxis = list(range=c(0,1000)),yaxis = list(range=c(-50,70)))
+    #clinvar
+    #fig <- add_bars(fig, x = ~protein_ClinVar, y = ~-20, color = "red")
+    #fig <- layout(fig, title = "Its working :)",shapes = list(
+    #          list(type = "rect",
+    #                fillcolor = "grey", line = list(color = "grey"), opacity = 1,
+    #                x0 = 0, x1 =1000, xref = "x",nickf
+    #                  y0 = 0, y1 = -10, yref = "y")))
+    fig <- layout(fig, shapes = sticks)
+    fig
   })
 
   plotInput <- reactive({
@@ -231,17 +311,18 @@ server <- function(input, output, session) {
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
     #abline(h=1, col="blue")
     
+    
     #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
-    axis(side = 1, pos = -3.7, c(1,ProteinSize))
+    axis(side = 1, pos = -4.7, c(1,ProteinSize))
     axis(side = 4, at = c(1,3), labels = c("0","40"))
     #axis(side = 4)
 
     # Box Dimensions 
-    rect(1, -1.4, ProteinSize, 0, col="grey88", border="black")
+    rect(1, -2, ProteinSize, 0, col="grey88", border="black")
     if(counter$n > 0){
       lapply(1:counter$n, function(i) {
-        rect(domain[[paste0("range_start", i)]], -1, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
-        text(domain[[paste0("mean", i)]], -0.5, domain[[paste0("name", i)]], cex = 1.3)
+        rect(domain[[paste0("range_start", i)]], -2, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
+        text(domain[[paste0("mean", i)]], -1, domain[[paste0("name", i)]], cex = 1.3)
       })
     }
 
@@ -251,10 +332,10 @@ server <- function(input, output, session) {
       lapply(1:counter$n_key, function(i) {
         if(i < 4){
           x <- -20
-          y <- (-3.5 -i *.5)
+          y <- (-5 -i *.5)
         }else{
           x <- 400
-          y <- (-2 -i *.5)
+          y <- (-3.5 -i *.5)
         }
         #Very bad code must be a better way to do this...
         inputKeyColour <- paste("key_colour", i, sep ="")
@@ -277,7 +358,7 @@ server <- function(input, output, session) {
       protein_ClinVar$Number <- -2
 
       par(new=TRUE)
-      plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-6.3, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
+      plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4.9, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
     }
     })
   })
@@ -380,17 +461,18 @@ server <- function(input, output, session) {
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
     #abline(h=1, col="blue")
     
+    
     #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
-    axis(side = 1, pos = -3.7, c(1,ProteinSize))
+    axis(side = 1, pos = -4.7, c(1,ProteinSize))
     axis(side = 4, at = c(1,3), labels = c("0","40"))
     #axis(side = 4)
 
     # Box Dimensions 
-    rect(1, -1.4, ProteinSize, 0, col="grey88", border="black")
+    rect(1, -2, ProteinSize, 0, col="grey88", border="black")
     if(counter$n > 0){
       lapply(1:counter$n, function(i) {
-        rect(domain[[paste0("range_start", i)]], -1, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
-        text(domain[[paste0("mean", i)]], -0.5, domain[[paste0("name", i)]], cex = 1.3)
+        rect(domain[[paste0("range_start", i)]], -2, domain[[paste0("range_end", i)]], 0, col=domain[[paste0("colour", i)]])
+        text(domain[[paste0("mean", i)]], -1, domain[[paste0("name", i)]], cex = 1.3)
       })
     }
 
@@ -400,10 +482,10 @@ server <- function(input, output, session) {
       lapply(1:counter$n_key, function(i) {
         if(i < 4){
           x <- -20
-          y <- (-3.5 -i *.5)
+          y <- (-5 -i *.5)
         }else{
           x <- 400
-          y <- (-2 -i *.5)
+          y <- (-3.5 -i *.5)
         }
         #Very bad code must be a better way to do this...
         inputKeyColour <- paste("key_colour", i, sep ="")
@@ -426,7 +508,7 @@ server <- function(input, output, session) {
       protein_ClinVar$Number <- -2
 
       par(new=TRUE)
-      plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-6.3, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
+      plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4.9, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
     }
     })
   })
