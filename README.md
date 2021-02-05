@@ -2,6 +2,3 @@
 sudo nano /etc/shiny-server/shiny-server.conf
 # Restart app
 sudo systemctl restart shiny-server
-# Must install all packages listed in app.R 
-SERVER: sudo su - -c "R -e \"install.packages('tidyverse')\""
-CLIENT : R install.packages('tidyverse')
