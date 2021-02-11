@@ -113,7 +113,8 @@ body <- dashboardBody(
           downloadButton("downloadData", "Download"),
           h2("Download High resolution plot"),
           downloadButton('downloadPlot', 'Download High Quality Plot'),
-          downloadButton('downloadPDF', 'Download as a vector PDF')
+          downloadButton('downloadPDF', 'Download as a vector PDF'),
+          tableOutput("hailTable")
           #plotlyOutput("graph")
         )
       )

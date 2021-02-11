@@ -173,7 +173,7 @@ server <- function(input, output, session) {
       protein$Frequency[findInterval(protein$Frequency, c(0.0001, 1)) == 1L] <- 3
     })
     # Plotting gnomAD Variants 
-    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Protein.Consequence)
     protein.2 <- gsub("[.]", "", protein.1)
     #protein$protein.2 <- protein.2
     #plot_ly(x = , y = protein$Height, type = 'scatter', mode = 'markers')
@@ -213,42 +213,56 @@ server <- function(input, output, session) {
     fig
   })
 
+  hailTable <- renderTable({
+    library(sparkhail)
+    library(sparklyr)
+
+    sc <- spark_connect(master = "local", version = "2.4", config = hail_config())
+
+    hl <- hail_context(sc)
+    mt <- hail_read_matrix(hl, system.file("/home/dan/scripts/gnomad_db/gnomad.exomes.r2.1.1.sites.ht", package = "sparkhail"))
+
+    df <- hail_dataframe(mt)
+
+    head(df)
+  })
+
   plotInput <- reactive({
-    library(dplyr)
-    library(rmarkdown)
-    library(RColorBrewer)
-    library(scales)
+  library(dplyr)
+  library(rmarkdown)
+  library(RColorBrewer)
+  library(scales)
 
-    req(input$file1)
-      if (input$makePlot == 0)
-        return()
-    #delete previous output in /temp
-    system("rm /home/dan/FAMVC/temp/*")
+  req(input$file1)
+    if (input$makePlot == 0)
+      return()
+  #delete previous output in /temp
+  system("rm /home/dan/FAMVC/temp/*")
 
-    isolate({
-      # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
-      protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
+  isolate({
+    # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
+    protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
 
-      # Plotting ClinVar Variants
-      if(!is.null(input$file2)){
-        protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
-      }
+    # Plotting ClinVar Variants
+    if(!is.null(input$file2)){
+      protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
+    }
 
-      #Code generate tsv for annovar, in future will be moved into functions.R
-      annovarInput <- protein
-      annovarInput$rsID <- annovarInput$Position
-      #rename column
-      colnames(annovarInput)[which(names(annovarInput) == "rsID")] <- "Position"
-      write.table(annovarInput, file = file.path("/home/dan/FAMVC/temp", "file.txt"),row.names=FALSE,sep='\t',quote=FALSE)
-      #Run annovar with the generated file
-      system("../scripts/annovar/./multianno.sh", wait = TRUE)
-      annovar <<- read.delim("/home/dan/FAMVC/temp/file.txt.hg19_multianno.txt")
-      #remove second row of headers that annovar adds
-      annovar <<- annovar[-c(2), ]
-      
-      protein$Height <- paste(annovar$CADD_phred)
-      protein$Height <- as.numeric(protein$Height)
-      protein$Height <- rescale(protein$Height, to = c(1,3), from = c(0,40))
+    #Code generate tsv for annovar, in future will be moved into functions.R
+    annovarInput <- protein
+    annovarInput$rsID <- annovarInput$Position
+    #rename column
+    colnames(annovarInput)[which(names(annovarInput) == "rsID")] <- "Position"
+    write.table(annovarInput, file = file.path("/home/dan/FAMVC/temp", "file.txt"),row.names=FALSE,sep='\t',quote=FALSE)
+    #Run annovar with the generated file
+    system("../scripts/annovar/./multianno.sh", wait = TRUE)
+    annovar <<- read.delim("/home/dan/FAMVC/temp/file.txt.hg19_multianno.txt")
+    #remove second row of headers that annovar adds
+    annovar <<- annovar[-c(2), ]
+    
+    protein$Height <- paste(annovar$CADD_phred)
+    protein$Height <- as.numeric(protein$Height)
+    protein$Height <- rescale(protein$Height, to = c(1,3), from = c(0,40))
     #protein frequency is represented as colour
     protein$Frequency <- paste(protein$Allele.Frequency)
     protein$Frequency[findInterval(protein$Frequency, c(0, 0.00001)) == 1L] <- 1
@@ -289,32 +303,25 @@ server <- function(input, output, session) {
 
     # OBSERVED VALUES OF ALL GNOMAD VARIANTS FOR EACH DOMAIN
     # Drops the characters and keeps the consequence value? 
-    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Protein.Consequence)
     protein$NumericConsequence <- gsub("[.]", "", protein.1)
 
     # PLOTTING BOTH THE GNOMAD AND CLINVAR VARIANTS
     par(mar = c(8, 5, 3, 5))
     
     # Plotting gnomAD Variants 
-    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Protein.Consequence)
     protein.2 <- gsub("[.]", "", protein.1)
     protein$protein.2 <- protein.2
     protein$Number1 <- -4
-    #plot(protein$Height~protein.2, ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = protein$Colour, bty="n")
-
-    #plot(protein$Height[which(protein$Frequency == 1)]~protein$protein.2[which(protein$Frequency == 1)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = grey, bty="n")
-    #lines(protein$Height[which(protein$Frequency == 2)]~protein$protein.2[which(protein$Frequency == 2)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = blue, bty="n")
-    #lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
-
+   
     plot(protein$Height[which(protein$Frequency == 1)]~protein$protein.2[which(protein$Frequency == 1)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = grey, bty="n")
     lines(protein$Height[which(protein$Frequency == 2)]~protein$protein.2[which(protein$Frequency == 2)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = blue, bty="n")
     lines(protein$Height[which(protein$Frequency == 3)]~protein$protein.2[which(protein$Frequency == 3)], ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-7, max(3)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type = 'h', col = purple, bty="n")
-    #abline(h=1, col="blue")
-    
     
     #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
     axis(side = 1, pos = -4.7, c(1,ProteinSize))
-    axis(side = 4, at = c(1,3), labels = c("0","40"))
+    axis(side = 4, at = c(1,3), labels = c("0","40"), pos = ProteinSize+ProteinSize*0.006)
     #axis(side = 4)
 
     # Box Dimensions 
@@ -330,12 +337,17 @@ server <- function(input, output, session) {
     par(xpd=TRUE)
     if(counter$n_key > 0){
       lapply(1:counter$n_key, function(i) {
-        if(i < 4){
-          x <- -20
-          y <- (-5 -i *.5)
+        if(i < 5){
+          x <- 0
+          y <- (-6 -i *.8)
         }else{
-          x <- 400
-          y <- (-3.5 -i *.5)
+          if(i < 9){
+            x <- ProteinSize * 0.3
+            y <- (-2.8 -i *.8)
+          }else{
+            x <- ProteinSize * 0.6
+            y <- (0.4 -i *.8)
+          }
         }
         #Very bad code must be a better way to do this...
         inputKeyColour <- paste("key_colour", i, sep ="")
@@ -439,14 +451,14 @@ server <- function(input, output, session) {
 
     # OBSERVED VALUES OF ALL GNOMAD VARIANTS FOR EACH DOMAIN
     # Drops the characters and keeps the consequence value? 
-    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Protein.Consequence)
     protein$NumericConsequence <- gsub("[.]", "", protein.1)
 
     # PLOTTING BOTH THE GNOMAD AND CLINVAR VARIANTS
     par(mar = c(8, 5, 3, 5))
     
     # Plotting gnomAD Variants 
-    protein.1 <- gsub("[a-zA-Z]", "", protein$Consequence)
+    protein.1 <- gsub("[a-zA-Z]", "", protein$Protein.Consequence)
     protein.2 <- gsub("[.]", "", protein.1)
     protein$protein.2 <- protein.2
     protein$Number1 <- -4
@@ -464,7 +476,7 @@ server <- function(input, output, session) {
     
     #legend(x = ProteinSize-100, y = -3.5 ,title="Frequency",legend=c("0 -> 0.00001","0.00001 -> 0.0001","0.0001 -> 1"),col =rbPal(3),pch=20)
     axis(side = 1, pos = -4.7, c(1,ProteinSize))
-    axis(side = 4, at = c(1,3), labels = c("0","40"))
+    axis(side = 4, at = c(1,3), labels = c("0","40"), pos = ProteinSize+ProteinSize*0.006)
     #axis(side = 4)
 
     # Box Dimensions 
@@ -480,12 +492,17 @@ server <- function(input, output, session) {
     par(xpd=TRUE)
     if(counter$n_key > 0){
       lapply(1:counter$n_key, function(i) {
-        if(i < 4){
-          x <- -20
-          y <- (-5 -i *.5)
+        if(i < 5){
+          x <- 0
+          y <- (-6 -i *.8)
         }else{
-          x <- 400
-          y <- (-3.5 -i *.5)
+          if(i < 9){
+            x <- ProteinSize * 0.3
+            y <- (-2.8 -i *.8)
+          }else{
+            x <- ProteinSize * 0.6
+            y <- (0.4 -i *.8)
+          }
         }
         #Very bad code must be a better way to do this...
         inputKeyColour <- paste("key_colour", i, sep ="")
