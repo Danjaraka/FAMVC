@@ -9,7 +9,8 @@ body <- dashboardBody(
   tags$head(
     tags$style(HTML("
     
-    "))),
+    ")),
+    tags$link(rel="shortcut icon", href="https://img.icons8.com/emoji/344/dna.png",type="image/x-icon")),
   ### changing theme
   shinyDashboardThemes(
       theme = "poor_mans_flatly"
@@ -29,33 +30,42 @@ body <- dashboardBody(
         # Sidebar panel for inputs ----
         sidebarPanel(
           # Input: Select a file ----
-          fileInput("file1", "Choose CSV File",
-                    multiple = TRUE,
-                    accept = c("text/csv",
-                            "text/comma-separated-values,text/plain",
-                            ".csv")),
-          actionButton("toggle", "Advanced Options"),
+          radioButtons("method", "Protein data", choices = c(Search = "search", CSV = "csv"),selected = "search"),
           conditionalPanel(
-          condition = "input.toggle % 2 == 1",
-          # Input: Checkbox if file has header ----
-          checkboxInput("header", "Header", TRUE),
-
-          # Input: Select separator ----
-          radioButtons("sep", "Separator",
-                      choices = c(Comma = ",",
-                                  Semicolon = ";",
-                                  Tab = "\t"),
-                      selected = ","),
-
-          # Input: Select quotes ----
-          radioButtons("quote", "Quote",
-                      choices = c(None = "",
-                                  "Double Quote" = '"',
-                                  "Single Quote" = "'"),
-                      selected = '"'),
-          radioButtons("disp", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+            condition = "input.method == 'search'",
+            textInput("search", "Search: ", ""),
+            #actionButton("searchbtn", "SearchGene"),
+            textOutput("debug")
           ),
-          
+          conditionalPanel(
+            condition = "input.method == 'csv'",
+            fileInput("file1", "Choose CSV File",
+                      multiple = TRUE,
+                      accept = c("text/csv",
+                              "text/comma-separated-values,text/plain",
+                              ".csv")),
+            actionButton("toggle", "Advanced Options"),
+            conditionalPanel(
+              condition = "input.toggle % 2 == 1",
+              # Input: Checkbox if file has header ----
+              checkboxInput("header", "Header", TRUE),
+
+              # Input: Select separator ----
+              radioButtons("sep", "Separator",
+                          choices = c(Comma = ",",
+                                      Semicolon = ";",
+                                      Tab = "\t"),
+                          selected = ","),
+
+              # Input: Select quotes ----
+              radioButtons("quote", "Quote",
+                          choices = c(None = "",
+                                      "Double Quote" = '"',
+                                      "Single Quote" = "'"),
+                          selected = '"'),
+              radioButtons("disp", "Display table preview", choices = c(Head = "head", All = "all", None = "none"),selected = "none"),
+            )
+          ),
           # Horizontal line ----
           tags$hr(),
           # Input: Select a file ----
@@ -104,19 +114,23 @@ body <- dashboardBody(
         # Main panel for displaying outputs ----
         mainPanel(
           h2("Frequency as colour, CADD Phred scores as height"),
-          #box(width = 12, plotOutput("colourPlot",height="400px",width="1500px")),
           box(width = 12, plotOutput("colourPlot") ),
-          #box(width = 12, imageOutput("myImage", height = "100%", width = "100%")),
           tableOutput("contents"),
           tableOutput("contents2"),
           h2("Download ANNOVAR output"),
           downloadButton("downloadData", "Download"),
           h2("Download High resolution plot"),
           downloadButton('downloadPlot', 'Download High Quality Plot'),
-          downloadButton('downloadPDF', 'Download as a vector PDF'),
-          tableOutput("hailTable")
-          #plotlyOutput("graph")
+          downloadButton('downloadPDF', 'Download as a vector PDF')
         )
+      )
+    ),
+    tabItem(  
+      tabName = "favmc-gallery",
+      titlePanel("Gallery"),
+      tags$hr(),
+      mainPanel(
+        h1("test :)")
       )
     )
   )
