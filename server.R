@@ -11,7 +11,6 @@ server <- function(input, output, session) {
 
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 0, n_key = 0)
-  searchOutput <- reactiveValues(text = ":)")
   domain <- reactiveValues()
   # Track all user inputs
   AllInputs <- reactive({
@@ -139,7 +138,7 @@ server <- function(input, output, session) {
   )
 
   output$debug <- renderText({ 
-    searchOutput$text
+
   })
 
   observeEvent(input$searchbtn, {
@@ -163,15 +162,15 @@ server <- function(input, output, session) {
     #delete previous output in /temp
     system("rm /home/dan/FAMVC/temp/*")
           # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
-    if(input$method == 'search'){
-      command <- paste0("python3 gnomad.py -gene ", input$search)
-      system(command, wait = TRUE)
-      protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
-    } else if (input$method == 'csv') {
-      protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
-    }  
 
     isolate({
+      if(input$method == 'search'){
+        command <- paste0("python3 gnomad.py -gene ", input$search)
+        system(command, wait = TRUE)
+        protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
+      } else if (input$method == 'csv') {
+        protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
+      }  
       # Plotting ClinVar Variants
       if(!is.null(input$file2)){
         protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)

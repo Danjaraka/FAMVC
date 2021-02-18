@@ -34,7 +34,6 @@ body <- dashboardBody(
           conditionalPanel(
             condition = "input.method == 'search'",
             textInput("search", "Search: ", ""),
-            #actionButton("searchbtn", "SearchGene"),
             textOutput("debug")
           ),
           conditionalPanel(
