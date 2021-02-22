@@ -11,7 +11,6 @@ server <- function(input, output, session) {
 
   # Track the number of input boxes to render
   counter <- reactiveValues(n = 0, n_key = 0)
-  searchOutput <- reactiveValues(text = ":)")
   domain <- reactiveValues()
   # Track all user inputs
   AllInputs <- reactive({
@@ -139,13 +138,13 @@ server <- function(input, output, session) {
   )
 
   output$debug <- renderText({ 
-    searchOutput$text
+    counter$debug
   })
 
   observeEvent(input$searchbtn, {
     command <- paste0("python3 gnomad.py -gene ", input$search)
     system(command, wait = TRUE)
-    searchOutput$text <- "LOLOLOLOL"
+    #searchOutput$text <- "LOLOLOLOL"
   })
 
   output$colourPlot <- renderPlot({
@@ -163,15 +162,19 @@ server <- function(input, output, session) {
     #delete previous output in /temp
     system("rm /home/dan/FAMVC/temp/*")
           # ADDING ANNOVAR PATHOGENICITY SCORES TO TABLE (dplyr)
-    if(input$method == 'search'){
-      command <- paste0("python3 gnomad.py -gene ", input$search)
-      system(command, wait = TRUE)
-      protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
-    } else if (input$method == 'csv') {
-      protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
-    }  
 
     isolate({
+      if(input$method == 'search'){
+        command <- paste0("python3 gnomad.py -gene ", input$search)
+        system(command, wait = TRUE)
+        protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
+      } else if (input$method == 'search_trans'){
+          command <- paste0("python3 gnomad.py -t -gene ", input$search)
+          system(command, wait = TRUE)
+          protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
+      } else if (input$method == 'csv') {
+          protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
+      }  
       # Plotting ClinVar Variants
       if(!is.null(input$file2)){
         protein_ClinVar <- read.csv(input$file2$datapath, header = input$header2 ,sep = input$sep2, quote = input$quote2)
@@ -291,6 +294,18 @@ server <- function(input, output, session) {
         par(new=TRUE)
         plot(protein_ClinVar$Number~protein_ClinVar.2,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4.9, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
       }
+      #plotting GNOMAD Clinvar variants
+      if(input$gnomad_clinvar){
+          file_directory <- paste0("temp/",input$search)
+          file_directory <- paste0(file_directory,"_clinvar_variants.csv")
+          gnomad_clinvar <- read.csv(file_directory, header = TRUE)
+          gnomad_clinvar$hgvsp <- gsub("[^0-9.]", "",  gnomad_clinvar$hgvsp)
+          gnomad_clinvar$hgvsp <- gsub("[.]", "", gnomad_clinvar$hgvsp)
+          gnomad_clinvar$Number <- -2
+          #counter$debug <- gnomad_clinvar$hgvsp
+          par(new=TRUE)
+          plot(gnomad_clinvar$Number~gnomad_clinvar$hgvsp,ylab = "", xlab = "", xlim=c(1,ProteinSize), ylim=c(-4.9, max(5)), xaxs="i",yaxs="i", yaxt="none", xaxt="none", type="h", col = "red2", bty="n")
+        }
     })
   })  
 }

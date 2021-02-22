@@ -30,17 +30,21 @@ body <- dashboardBody(
         # Sidebar panel for inputs ----
         sidebarPanel(
           # Input: Select a file ----
-          radioButtons("method", "Protein data", choices = c(Search = "search", CSV = "csv"),selected = "search"),
+          textOutput("debug"),
+          radioButtons("method", "Protein data", choices = c("Search GNOMAD for gene by name" = "search", "Search GNOMAD for gene by transcript" = "search_trans" ,"Upload a CSV" = "csv"),selected = "search"),
           conditionalPanel(
             condition = "input.method == 'search'",
-            textInput("search", "Search: ", ""),
-            #actionButton("searchbtn", "SearchGene"),
-            textOutput("debug")
+            textInput("search", "Search gene name: ", ""),
+            checkboxInput("filter_transcripts", "Filter gene transcripts",value=FALSE)
+          ),
+          conditionalPanel(
+            condition = "input.method == 'search_trans'",
+            textInput("search", "Search gene transcript: ", ""),
           ),
           conditionalPanel(
             condition = "input.method == 'csv'",
             fileInput("file1", "Choose CSV File",
-                      multiple = TRUE,
+                      multiple = FALSE,
                       accept = c("text/csv",
                               "text/comma-separated-values,text/plain",
                               ".csv")),
@@ -69,11 +73,15 @@ body <- dashboardBody(
           # Horizontal line ----
           tags$hr(),
           # Input: Select a file ----
-          fileInput("file2", "Choose clinvar csv File",
-                    multiple = TRUE,
+          fileInput("file2", "Choose clinvar csv File (Optional)",
+                    multiple = FALSE,
                     accept = c("text/csv",
                             "text/comma-separated-values,text/plain",
                             ".csv")),
+          conditionalPanel(
+            condition = "input.method == 'search'",
+            checkboxInput("gnomad_clinvar", "Include clinvar variants from gnomad",value=TRUE)
+          ),
           actionButton("toggleClinVar", "Advanced Options"),
           conditionalPanel(
             condition = "input.toggleClinVar % 2 == 1",
