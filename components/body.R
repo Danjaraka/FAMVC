@@ -39,7 +39,7 @@ body <- dashboardBody(
           ),
           conditionalPanel(
             condition = "input.method == 'search_trans'",
-            textInput("search", "Search gene transcript: ", ""),
+            textInput("search2", "Search gene transcript: (WIP)", ""),
           ),
           conditionalPanel(
             condition = "input.method == 'csv'",

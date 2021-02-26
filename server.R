@@ -169,9 +169,9 @@ server <- function(input, output, session) {
         system(command, wait = TRUE)
         protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
       } else if (input$method == 'search_trans'){
-          command <- paste0("python3 gnomad.py -t -gene ", input$search)
+          command <- paste0("python3 gnomad.py -t -gene ", input$search2)
           system(command, wait = TRUE)
-          protein <- read.csv(paste0(paste0("temp/",input$search),".csv"))
+          protein <- read.csv(paste0(paste0("temp/",input$search2),".csv"))
       } else if (input$method == 'csv') {
           protein <- read.csv(input$file1$datapath,header = input$header,sep = input$sep,quote = input$quote)
       }  
@@ -296,7 +296,11 @@ server <- function(input, output, session) {
       }
       #plotting GNOMAD Clinvar variants
       if(input$gnomad_clinvar){
-          file_directory <- paste0("temp/",input$search)
+          if(input$method == 'search_trans'){
+            file_directory <- paste0("temp/",input$search2)
+          }else{
+            file_directory <- paste0("temp/",input$search)
+          }
           file_directory <- paste0(file_directory,"_clinvar_variants.csv")
           gnomad_clinvar <- read.csv(file_directory, header = TRUE)
           gnomad_clinvar$hgvsp <- gsub("[^0-9.]", "",  gnomad_clinvar$hgvsp)

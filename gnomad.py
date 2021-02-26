@@ -109,6 +109,9 @@ def get_variants_by(gene, transcript):
                     lof_filter
                     lof_flags
                     hgvs
+                    exome{
+                        af
+                    }
                 }
             }
         }
